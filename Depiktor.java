@@ -235,7 +235,7 @@ public class Depiktor
         headers[3] = (byte) ((totalFileSize & 0x0000FF00) >> 8);
         headers[4] = (byte) ((totalFileSize & 0x00FF0000) >> 16);
         headers[5] = (byte) ((totalFileSize & 0xFF000000) >> 24);
-        //hold amount of padding
+        //hold amount of padding (unused otherwise)
         headers[6] = (byte)  (padding & 0x00FF);
         headers[7] = (byte) ((padding & 0xFF00) >> 8);
         //unused

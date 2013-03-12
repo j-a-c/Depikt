@@ -21,10 +21,15 @@ public class Depikt
             //intro text
             System.out.println("\n");
             System.out.println("Depikt - joshuac.com");
-            System.out.println("Usage: java Depikt -args input output");
+            System.out.println("Joshua A. Campbell\n");
+            System.out.println("Usage: java Depikt -arg input output\n");
             System.out.println("Args:");
-            System.out.println("\t -w : write executable 'input' to bitmap image 'output'");
+            System.out.println("\t -w : write executable 'input' to new bitmap image 'output'");
+            System.out.println("\t\t Bitmap 'output' should not exist already.");
+            System.out.println("\t -h : hide executable 'input'  in a pre-existing bitmap image 'output'");
             System.out.println("\t -r : read executable 'output' from bitmap image 'input'");
+            System.out.println("\t\tExecutable 'output' should not exist.");
+            System.out.println("\t -f : find executable 'output' from a bitmap image 'input'");
             System.out.println("\n");
         }
         else
