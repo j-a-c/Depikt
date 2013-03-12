@@ -10,6 +10,9 @@
 public class Depikt
 {
 
+    final static int WRITE = 0;
+    final static int READ = 1;
+
     public static void main(String[] args)
     {
 
@@ -43,7 +46,7 @@ public class Depikt
     {
         //TODO
         //retrieve executable from bitmap image file
-        Depiktor depikt = new Depiktor(inputName, outputName);
+        Depiktor depikt = new Depiktor(inputName, outputName, READ);
         depikt.decolor();
 
     }//end readMode
@@ -51,7 +54,7 @@ public class Depikt
     public static void writeMode(String inputName, String outputName)
     {
         //write executable to bitmap image file
-        Depiktor depikt = new Depiktor(inputName, outputName);
+        Depiktor depikt = new Depiktor(inputName, outputName, WRITE);
         depikt.color();
 
     }//end writeMode

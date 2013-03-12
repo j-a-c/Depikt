@@ -1,6 +1,6 @@
 /*
  *
- * Handles reading input file
+ * Handles reading/writing bitmap/exec file
  *
  * Author: Joshua A. Campbell
  * joshuac.com
@@ -16,6 +16,9 @@ public class Depiktor
 
     //constant(s)
     int BYTES_PER_PIXEL = 24;
+    //constructor constants
+    final int WRITE = 0;
+    final int READ = 1;
 
     //input file
     public FileInputStream input = null;
@@ -31,24 +34,48 @@ public class Depiktor
     int padding = 0;
 
     //constructor
-    //@params: input and output file names
-    public Depiktor(String inputName, String outputName)
+    //@params: input and output file names, mode
+    //  mode:   0: -w
+    //          1: -r
+    public Depiktor(String inputName, String outputName, int mode)
     {
-        try
+        if(mode == WRITE)
         {
-            this.input = new FileInputStream(inputName);
-        } 
-        catch(java.io.FileNotFoundException e)
-        {
-            System.out.println("Input file not found.");  
+            try
+            {
+                this.input = new FileInputStream(inputName);
+            } 
+            catch(java.io.FileNotFoundException e)
+            {
+                System.out.println("Input file not found.");  
+            }
+            try
+            {
+                this.output = new FileOutputStream(outputName + ".bmp", true);
+            }
+            catch(java.io.FileNotFoundException e)
+            {
+                System.out.println("OutputFile not found.");
+            }
         }
-        try
+        else if(mode == READ)
         {
-            this.output = new FileOutputStream(outputName + ".bmp", true);
-        }
-        catch(java.io.FileNotFoundException e)
-        {
-            System.out.println("OutputFile not found.");
+             try
+            {
+                this.input = new FileInputStream(inputName + ".bmp");
+            } 
+            catch(java.io.FileNotFoundException e)
+            {
+                System.out.println("Input file not found.");  
+            }
+            try
+            {
+                this.output = new FileOutputStream(outputName, true);
+            }
+            catch(java.io.FileNotFoundException e)
+            {
+                System.out.println("OutputFile not found.");
+            }       
         }
     }
 
@@ -61,19 +88,45 @@ public class Depiktor
     {
         readPadding();
         readData();
-    }
+        System.out.println("Executable written.");
+    }//end decolor
 
     //read the amount of padding from the bitmap image file
     public void readPadding()
     {
-    
-    }
+        try
+        {
+            //skip first six bytes
+            input.skip(6);
+            //next two byte (used in the spec) hold padding
+            padding = input.read() | (input.read() << 8);
+        }
+        catch(java.io.IOException e)
+        {
+            System.out.println("Error in readPadding()");
+        }
+    }//end readPadding
 
     //read executable data from the bitmap image file
+    //and write to output
     public void readData()
     {
-    
-    }
+        try
+        {
+            //skip the 46 = 54 - 8 remaining bytes in the BMP and DIB headers
+            input.skip(46);
+            //remaining bytes - padding at end are program
+            int remaining = input.available() - padding;
+
+            for(int i = 0; i < remaining; i++)
+                output.write( input.read() );
+        }
+        catch(java.io.IOException e)
+        {
+            System.out.println("Error in readData()");
+        }
+
+    }//end readData
 
     /*
      * Methods to write to bitmap image file
