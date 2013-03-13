@@ -15,23 +15,25 @@ public class Depiktor
 {
 
     //constant(s)
-    int BYTES_PER_PIXEL = 24;
+    private int BYTES_PER_PIXEL = 24;
     //constructor constants
-    final int WRITE = 0;
-    final int READ = 1;
+    private final int WRITE = 0;
+    private final int READ = 1;
+    private final int HIDE = 2;
+    private final int FIND = 3;
 
-    //input file
-    public FileInputStream input = null;
-    //output file
-    public FileOutputStream output = null;
+    //file names
+    private String inputName;
+    private String outputName;
+
 
     //size of data
-    int size = 0;
+    private int size = 0;
     //width/height in pixels (bytes per row / bytes per pixel)
-    int width = 0;
-    int height = 0;
+    private int width = 0;
+    private int height = 0;
     //padding needed
-    int padding = 0;
+    private int padding = 0;
 
     //constructor
     //@params: input and output file names, mode
@@ -41,42 +43,24 @@ public class Depiktor
     {
         if(mode == WRITE)
         {
-            try
-            {
-                this.input = new FileInputStream(inputName);
-            } 
-            catch(java.io.FileNotFoundException e)
-            {
-                System.out.println("Input file not found.");  
-            }
-            try
-            {
-                this.output = new FileOutputStream(outputName + ".bmp", true);
-            }
-            catch(java.io.FileNotFoundException e)
-            {
-                System.out.println("OutputFile not found.");
-            }
+            this.inputName = inputName;
+            this.outputName = outputName + ".bmp";
+
         }
         else if(mode == READ)
         {
-             try
-            {
-                this.input = new FileInputStream(inputName + ".bmp");
-            } 
-            catch(java.io.FileNotFoundException e)
-            {
-                System.out.println("Input file not found.");  
-            }
-            try
-            {
-                this.output = new FileOutputStream(outputName, true);
-            }
-            catch(java.io.FileNotFoundException e)
-            {
-                System.out.println("OutputFile not found.");
-            }       
+            this.inputName = inputName + ".bmp"; 
+            this.outputName = outputName;
         }
+    }
+
+    /*
+     * Methods to hide an executable in an existing image file
+     */
+
+    public void hide()
+    {
+        System.out.println("Executable hidden.");
     }
 
     /*
@@ -86,13 +70,50 @@ public class Depiktor
     //retrieves an executable from an image file
     public void decolor()
     {
-        readPadding();
-        readData();
+
+        //input file
+        FileInputStream input = null;
+        //output file
+        FileOutputStream output = null;
+
+        //initialize streams
+        try
+        {
+            input = new FileInputStream(this.inputName);
+        } 
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println(this.inputName + " not found.");  
+        }
+        try
+        {
+            output = new FileOutputStream(this.outputName, true);
+        }
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println(this.outputName + " not found.");
+        }    
+
+        //operations
+        readPadding(input);
+        readData(input, output);
+        
+        try
+        {
+            //close streams
+            input.close();
+            output.close();
+        }
+        catch(java.io.IOException e)
+        {
+            System.out.println("Error closing streams in decolor().");
+        }
+
         System.out.println("Executable written.");
     }//end decolor
 
     //read the amount of padding from the bitmap image file
-    public void readPadding()
+    public void readPadding(FileInputStream input)
     {
         try
         {
@@ -109,7 +130,7 @@ public class Depiktor
 
     //read executable data from the bitmap image file
     //and write to output
-    public void readData()
+    public void readData(FileInputStream input, FileOutputStream output)
     {
         try
         {
@@ -135,9 +156,45 @@ public class Depiktor
     //transforms the executable into a bitmap image file
     public void color()
     {
-        writeHeaders();
-        writeData();
-        writePadding();
+
+        //input file
+        FileInputStream input = null;
+        //output file
+        FileOutputStream output = null;
+
+        //initialize streams
+        try
+        {
+            input = new FileInputStream(this.inputName);
+        } 
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println(this.inputName + " not found.");  
+        }
+        try
+        {
+            output = new FileOutputStream(this.outputName, true);
+        }
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println(this.outputName + " not found.");
+        }
+
+        //operations
+        writeHeaders(input, output);
+        writeData(input, output);
+        writePadding(output);
+
+        try
+        {
+        //close streams
+        input.close();
+        output.close();
+        }
+        catch(java.io.IOException e)
+        {
+            System.out.println("Error closing streams in color()");
+        }
         
         System.out.println("Width (px): " + width + "\n"
                 + "Height (px): " + height);
@@ -145,7 +202,7 @@ public class Depiktor
     }//end color
 
     //writes the BMP and DIB headers to the bitmap image file
-    public void writeHeaders()
+    public void writeHeaders(FileInputStream input, FileOutputStream output)
     {
         try
         {
@@ -175,7 +232,7 @@ public class Depiktor
     }//end writeHeaders
 
     //writes the executable data to the bitmap data file
-    public void writeData()
+    public void writeData(FileInputStream input, FileOutputStream output)
     {
         try{
        
@@ -198,7 +255,7 @@ public class Depiktor
     }//end writeData
 
     //writes the padding to the bitmap data file
-    public void writePadding()
+    public void writePadding(FileOutputStream output)
     {
         try
         {
