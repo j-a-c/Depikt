@@ -34,6 +34,8 @@ public class Depiktor
     private int height = 0;
     //padding needed
     private int padding = 0;
+    //starting address, of the byte where the bitmap image data (pixel array) can be found
+    private int offset = 0;
 
     //constructor
     //@params: input and output file names, mode
@@ -41,7 +43,7 @@ public class Depiktor
     //          1: -r
     public Depiktor(String inputName, String outputName, int mode)
     {
-        if(mode == WRITE)
+        if(mode == WRITE | mode == HIDE)
         {
             this.inputName = inputName;
             this.outputName = outputName + ".bmp";
@@ -60,7 +62,72 @@ public class Depiktor
 
     public void hide()
     {
+        //input executable 
+        FileInputStream input = null;
+        //original bitmap
+        FileInputStream orig = null;
+        //output bitmap
+        FileOutputStream output = null;
+
+        //initialize streams
+        try
+        {
+            input = new FileInputStream(this.inputName);
+        } 
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println(this.inputName + " not found.");  
+        }
+        try
+        {
+            orig = new FileInputStream(this.outputName);
+        }
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println(this.outputName + " not found.");
+        }    
+        try
+        {
+            output = new FileOutputStream("depikt_" + this.outputName + ".bmp", true);
+        }
+        catch(java.io.FileNotFoundException e)
+        {
+            System.out.println("Unable to create depikt_" + this.outputName + ".bmp"); 
+        }    
+
+        
+        //operations
+        readBMPHeader(orig);
+        mergeDataAndBitmap(input,orig,output);
+
+        //close streams
+        try
+        {
+            input.close();
+            orig.close();
+            output.close();
+        }
+        catch(java.io.IOException e)
+        {
+            System.out.println("Error closing streams in hide().");
+        }
+
         System.out.println("Executable hidden.");
+    }//end hide
+
+    //@params:
+    //      executable, original bitmap, output bitmap
+    public void mergeDataAndBitmap(FileInputStream input, FileInputStream, orig, FileOutputStream output)
+    {
+        try
+        {
+            //skip BMP header and jump
+            orig.skip(offset-14); 
+        }
+        catch(java.io.IOException e)
+        {
+            System.out.println("Error in mergeDataAndBitmap()");
+        }
     }
 
     /*
@@ -71,9 +138,9 @@ public class Depiktor
     public void decolor()
     {
 
-        //input file
+        //input bitmap image file 
         FileInputStream input = null;
-        //output file
+        //output executable 
         FileOutputStream output = null;
 
         //initialize streams
@@ -95,7 +162,7 @@ public class Depiktor
         }    
 
         //operations
-        readPadding(input);
+        readBMPHeader(input);
         readData(input, output);
         
         try
@@ -112,21 +179,27 @@ public class Depiktor
         System.out.println("Executable written.");
     }//end decolor
 
-    //read the amount of padding from the bitmap image file
-    public void readPadding(FileInputStream input)
+    //read the BMP header of the bitmap image file
+    public void readBMPHeader(FileInputStream input)
     {
         try
         {
-            //skip first six bytes
-            input.skip(6);
+            //skip first two bytes (magic number)
+            input.skip(2);
+            //record size of BMP file (in bytes)
+            size = input.read() | input.read() << 8 | input.read() << 16 | input.read() << 24;
             //next two byte (used in the spec) hold padding
             padding = input.read() | (input.read() << 8);
+            //skip two bytes (unused)
+            input.skip(2);
+            //pixel data offset
+            offset = input.read() | input.read() << 8 | input.read() << 16 | input.read() << 24;
         }
         catch(java.io.IOException e)
         {
-            System.out.println("Error in readPadding()");
+            System.out.println("Error in readBMPHeader()");
         }
-    }//end readPadding
+    }//end readBMPHeader 
 
     //read executable data from the bitmap image file
     //and write to output
@@ -134,10 +207,11 @@ public class Depiktor
     {
         try
         {
-            //skip the 46 = 54 - 8 remaining bytes in the BMP and DIB headers
-            input.skip(46);
-            //remaining bytes - padding at end are program
-            int remaining = input.available() - padding;
+            //TODO assumes the smallest DIB header
+            //skip the 40 = 54 - 14 remaining bytes in the BMP and DIB headers
+            input.skip(40);
+            //remaining bytes - padding at end, belong to the program
+            int remaining = (size - offset) - padding;
 
             for(int i = 0; i < remaining; i++)
                 output.write( input.read() );
@@ -157,9 +231,9 @@ public class Depiktor
     public void color()
     {
 
-        //input file
+        //input executable 
         FileInputStream input = null;
-        //output file
+        //output bitmap 
         FileOutputStream output = null;
 
         //initialize streams

@@ -76,7 +76,7 @@ public class Depikt
         }
         else //hide executable
         {
-            Depiktor depikt = new Depiktor(inputName, outputName + "_depikt", HIDE);
+            Depiktor depikt = new Depiktor(inputName, outputName, HIDE);
             depikt.hide();
         }
 
